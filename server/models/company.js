@@ -14,6 +14,10 @@ const companySchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    isOnboarded: {
+      type: Boolean,
+      default: false,
+    },
     logo: {
       type: String,
       required: true,
