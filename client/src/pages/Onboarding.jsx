@@ -18,6 +18,26 @@ const Onboarding = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  // Check onboarding status and redirect if already onboarded
+  useEffect(() => {
+    const checkOnboarded = async () => {
+      if (!user?.email) return;
+      try {
+        const res = await axios.post(
+          `${import.meta.env.VITE_API_URL}/user/check`,
+          { email: user.email }
+        );
+        // If user is already onboarded, redirect to dashboard
+        if (res.data.redirect === "/dashboard") {
+          navigate("/dashboard");
+        }
+      } catch (err) {
+        // Do nothing, stay on onboarding if not found
+      }
+    };
+    checkOnboarded();
+  }, [user, navigate]);
+
   // Prefill name, email, and id when user is available
   useEffect(() => {
     if (user) {
