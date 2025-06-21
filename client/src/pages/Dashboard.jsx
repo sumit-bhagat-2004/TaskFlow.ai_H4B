@@ -7,11 +7,7 @@ const Dashboard = () => {
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showProjectForm, setShowProjectForm] = useState(false);
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    deadLine: "",
-  });
+  const [form, setForm] = useState({ name: "", description: "", deadLine: "" });
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -65,7 +61,7 @@ const Dashboard = () => {
       });
       setShowProjectForm(false);
       setForm({ name: "", description: "", deadLine: "" });
-      // Refresh dashboard
+
       const stored = localStorage.getItem("user");
       const u = stored ? JSON.parse(stored) : {};
       const res = await axios.post(
@@ -78,53 +74,54 @@ const Dashboard = () => {
     }
   };
 
-  if (loading) return <div className="text-center p-8">Loading...</div>;
-  if (!dashboard)
-    return (
-      <div className="text-center p-8 text-red-600">
-        Failed to load dashboard.
-      </div>
-    );
+  const containerStyles = "max-w-5xl mx-auto mt-10 p-8 rounded-xl shadow-xl";
+  const cardStyles = "bg-[#1a1a1a] text-gray-200 border border-gray-700";
+  const titleStyles = "text-2xl font-extrabold text-white mb-4";
+  const subHeading = "text-xl font-semibold text-gray-100 mb-2";
 
-  // Company Dashboard
+  if (loading) return <div className="text-center text-white p-8">Loading...</div>;
+  if (!dashboard)
+    return <div className="text-center p-8 text-red-400">Failed to load dashboard.</div>;
+
   if (dashboard.type === "company") {
     return (
-      <div className="max-w-4xl mx-auto mt-10 p-8 bg-white rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold mb-4">
-          {dashboard.company.name} (Company Dashboard)
-        </h2>
+      <div className={`${containerStyles} ${cardStyles}`}>
+        <h2 className={titleStyles}>{dashboard.company.name} (Dashboard)</h2>
         <div className="flex items-center gap-4 mb-6">
           <img
             src={dashboard.company.logo}
             alt="Company Logo"
-            className="h-16 w-16 rounded-full border"
+            className="h-16 w-16 rounded-full border border-gray-600"
           />
           <div>
-            <div className="font-semibold">{dashboard.company.name}</div>
-            <div className="text-gray-500">{dashboard.company.email}</div>
-            <div className="text-gray-400 text-sm">
+            <div className="font-bold text-white">{dashboard.company.name}</div>
+            <div className="text-gray-400">{dashboard.company.email}</div>
+            <div className="text-sm text-gray-500">
               Company ID: {dashboard.company.companyId}
             </div>
           </div>
         </div>
         <div className="mb-6">
-          <h3 className="font-semibold mb-2">Employees</h3>
-          <ul className="list-disc ml-6">
+          <h3 className={subHeading}>Employees</h3>
+          <ul className="list-disc ml-6 space-y-1">
             {dashboard.employees.map((emp) => (
               <li key={emp._id}>
-                {emp.name} ({emp.email}) - {emp.position}
+                <span className="text-white font-medium">{emp.name}</span>{" "}
+                <span className="text-gray-400">({emp.email}) - {emp.position}</span>
               </li>
             ))}
           </ul>
         </div>
         <div>
-          <h3 className="font-semibold mb-2">Projects</h3>
-          <ul className="list-disc ml-6">
+          <h3 className={subHeading}>Projects</h3>
+          <ul className="list-disc ml-6 space-y-1">
             {dashboard.projects.map((proj) => (
               <li key={proj._id}>
-                <span className="font-medium">{proj.name}</span> -{" "}
-                {proj.description} (Deadline:{" "}
-                {new Date(proj.deadLine).toLocaleDateString()})
+                <span className="font-medium text-white">{proj.name}</span> -{" "}
+                <span className="text-gray-300">{proj.description}</span>{" "}
+                <span className="text-sm text-gray-500">
+                  (Deadline: {new Date(proj.deadLine).toLocaleDateString()})
+                </span>
               </li>
             ))}
           </ul>
@@ -133,17 +130,16 @@ const Dashboard = () => {
     );
   }
 
-  // Project Manager Dashboard
   if (dashboard.type === "manager") {
     return (
-      <div className="max-w-3xl mx-auto mt-10 p-8 bg-white rounded-lg shadow">
-        <h2 className="text-2xl font-bold mb-4">Project Manager Dashboard</h2>
+      <div className={`${containerStyles} ${cardStyles}`}>
+        <h2 className={titleStyles}>Project Manager Dashboard</h2>
         <div className="mb-6">
-          <div className="font-semibold">{dashboard.user.name}</div>
-          <div className="text-gray-500">{dashboard.user.email}</div>
+          <div className="text-white font-bold">{dashboard.user.name}</div>
+          <div className="text-gray-400">{dashboard.user.email}</div>
         </div>
         <button
-          className="mb-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          className="mb-4 px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600"
           onClick={() => setShowProjectForm((v) => !v)}
         >
           {showProjectForm ? "Cancel" : "Create New Project"}
@@ -156,7 +152,7 @@ const Dashboard = () => {
               value={form.name}
               onChange={handleProjectChange}
               required
-              className="w-full border px-3 py-2 rounded"
+              className="w-full bg-gray-800 border border-gray-600 text-white px-3 py-2 rounded"
             />
             <textarea
               name="description"
@@ -164,7 +160,7 @@ const Dashboard = () => {
               value={form.description}
               onChange={handleProjectChange}
               required
-              className="w-full border px-3 py-2 rounded"
+              className="w-full bg-gray-800 border border-gray-600 text-white px-3 py-2 rounded"
             />
             <input
               name="deadLine"
@@ -172,7 +168,7 @@ const Dashboard = () => {
               value={form.deadLine}
               onChange={handleProjectChange}
               required
-              className="w-full border px-3 py-2 rounded"
+              className="w-full bg-gray-800 border border-gray-600 text-white px-3 py-2 rounded"
             />
             <button
               type="submit"
@@ -180,21 +176,23 @@ const Dashboard = () => {
             >
               Create Project
             </button>
-            {error && <div className="text-red-600 mt-2">{error}</div>}
+            {error && <div className="text-red-400 mt-2">{error}</div>}
           </form>
         )}
-        <h3 className="text-xl font-semibold mb-2">Your Projects</h3>
-        <ul>
+        <h3 className={subHeading}>Your Projects</h3>
+        <ul className="space-y-2">
           {dashboard.projects.map((p) => (
-            <li key={p._id} className="border-b py-2">
+            <li key={p._id} className="border-b border-gray-600 py-2">
               <Link
                 to={`/project/${p._id}`}
-                className="text-blue-600 hover:underline font-semibold"
+                className="text-sky-400 hover:underline font-semibold"
               >
                 {p.name}
               </Link>{" "}
-              - {p.description} (Deadline:{" "}
-              {new Date(p.deadLine).toLocaleDateString()})
+              - <span className="text-gray-300">{p.description}</span>{" "}
+              <span className="text-sm text-gray-500">
+                (Deadline: {new Date(p.deadLine).toLocaleDateString()})
+              </span>
             </li>
           ))}
         </ul>
@@ -202,35 +200,37 @@ const Dashboard = () => {
     );
   }
 
-  // Member Dashboard
   if (dashboard.type === "member") {
     return (
-      <div className="max-w-3xl mx-auto mt-10 p-8 bg-white rounded-lg shadow">
-        <h2 className="text-2xl font-bold mb-4">Your Projects</h2>
+      <div className={`${containerStyles} ${cardStyles}`}>
+        <h2 className={titleStyles}>Your Projects</h2>
         <div className="mb-6">
-          <div className="font-semibold">{dashboard.user.name}</div>
-          <div className="text-gray-500">{dashboard.user.email}</div>
+          <div className="font-bold text-white">{dashboard.user.name}</div>
+          <div className="text-gray-400">{dashboard.user.email}</div>
         </div>
-        <ul>
+        <ul className="space-y-2">
           {dashboard.projects.map((p) => (
-            <li key={p._id} className="border-b py-2">
+            <li key={p._id} className="border-b border-gray-600 py-2">
               <Link
                 to={`/project/${p._id}`}
-                className="text-blue-600 hover:underline font-semibold"
+                className="text-sky-400 hover:underline font-semibold"
               >
                 {p.name}
               </Link>{" "}
-              - {p.description} (Deadline:{" "}
-              {new Date(p.deadLine).toLocaleDateString()})
+              - <span className="text-gray-300">{p.description}</span>{" "}
+              <span className="text-sm text-gray-500">
+                (Deadline: {new Date(p.deadLine).toLocaleDateString()})
+              </span>
             </li>
           ))}
         </ul>
-        <h3 className="text-xl font-semibold mt-6 mb-2">Your Tasks</h3>
-        <ul>
+
+        <h3 className={`${subHeading} mt-6`}>Your Tasks</h3>
+        <ul className="space-y-2">
           {dashboard.tasks && dashboard.tasks.length > 0 ? (
             dashboard.tasks.map((t) => (
-              <li key={t._id} className="border-b py-2">
-                <span className="font-medium">{t.name}</span> - {t.description}{" "}
+              <li key={t._id} className="border-b border-gray-600 py-2 text-gray-300">
+                <span className="font-semibold text-white">{t.name}</span> - {t.description}
                 <br />
                 <span className="text-sm text-gray-500">
                   Project: {t.project?.name} | Status: {t.status} | Updated:{" "}
@@ -248,7 +248,7 @@ const Dashboard = () => {
 
   return (
     <div className="flex justify-center items-center h-64">
-      <span className="text-lg text-red-600">Unknown dashboard type.</span>
+      <span className="text-lg text-red-500">Unknown dashboard type.</span>
     </div>
   );
 };

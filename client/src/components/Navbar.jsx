@@ -7,13 +7,13 @@ const Navbar = () => {
 
   const navLinks = [
     { name: "Dashboard", path: "/dashboard" },
-    { name: "Onboarding", path: "/onboarding" },
-    { name: "Projects", path: "/projects" },
+    // { name: "Onboarding", path: "/onboarding" },
+    // { name: "Projects", path: "/projects" },
     { name: "Employees", path: "/employees" }
   ];
 
   return (
-    <nav className="bg-gradient-to-r from-blue-600 to-indigo-700 shadow-lg">
+    <nav className="bg-gradient-to-r from-black to-zinc-600 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-8">
         <div className="flex justify-between h-16 items-center">
           {/* Logo/Brand */}
