@@ -36,7 +36,9 @@ const ProjectDetails = () => {
     const fetchProject = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/projects/${id}`);
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL}/projects/${id}`
+        );
         setProject(res.data);
       } catch {
         setProject(null);
@@ -84,18 +86,26 @@ const ProjectDetails = () => {
       setAddSuccess("User added to project!");
       setSelectedUser("");
       setShowModal(false);
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/projects/${id}`);
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/projects/${id}`
+      );
       setProject(res.data);
     } catch (err) {
-      setAddError(err.response?.data?.error || "Failed to add user to project.");
+      setAddError(
+        err.response?.data?.error || "Failed to add user to project."
+      );
     }
   };
 
-  if (loading) return <div className="text-center p-8 text-white">Loading...</div>;
+  if (loading)
+    return <div className="text-center p-8 text-white">Loading...</div>;
   if (!project)
-    return <div className="text-center p-8 text-red-600">Project not found.</div>;
+    return (
+      <div className="text-center p-8 text-red-600">Project not found.</div>
+    );
 
-  const adminId = typeof project.admin === "object" ? project.admin._id : project.admin;
+  const adminId =
+    typeof project.admin === "object" ? project.admin._id : project.admin;
   const isAdmin = userId && adminId && String(userId) === String(adminId);
 
   return (
@@ -114,7 +124,9 @@ const ProjectDetails = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Left: Project Info */}
           <div className="space-y-6">
-            <p className="text-white-300 text-base space-y-5">{project.description}</p>
+            <p className="text-white-300 text-base space-y-5">
+              {project.description}
+            </p>
             <div>
               <span className="font-semibold text-gray-200">📅 Deadline:</span>{" "}
               <span className="text-gray-400">
@@ -122,7 +134,9 @@ const ProjectDetails = () => {
               </span>
             </div>
             <div>
-              <span className="font-semibold text-gray-200">🏢 Company ID:</span>{" "}
+              <span className="font-semibold text-gray-200">
+                🏢 Company ID:
+              </span>{" "}
               <span className="text-gray-400">{project.companyId}</span>
             </div>
             <div>
@@ -135,7 +149,9 @@ const ProjectDetails = () => {
 
           {/* Right: Members */}
           <div className="ml-8">
-            <h3 className="text-xl font-semibold text-gray-200 mb-3">👥 Members</h3>
+            <h3 className="text-xl font-semibold text-gray-200 mb-3">
+              👥 Members
+            </h3>
             {project.members && project.members.length > 0 ? (
               <ul className="space-y-4">
                 {project.members.map((m, index) => (
@@ -174,20 +190,25 @@ const ProjectDetails = () => {
             >
               Add Employee to Project
             </button>
-            {addSuccess && <div className="text-green-600 mt-2">{addSuccess}</div>}
+            {addSuccess && (
+              <div className="text-green-600 mt-2">{addSuccess}</div>
+            )}
           </div>
         )}
 
         {/* Modal */}
         {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-8 shadow-lg w-full max-w-md">
-              <h3 className="text-xl font-bold mb-4">Add Employee</h3>
-              <form onSubmit={handleAddUser}>
+          <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-md flex items-center justify-center z-50">
+            <div className="bg-[#0f0f0f] border border-pink-500 rounded-2xl shadow-xl p-8 w-full max-w-md relative animate-fade-in">
+              <h3 className="text-2xl font-bold text-pink-500 mb-4 text-center">
+                Add Employee
+              </h3>
+
+              <form onSubmit={handleAddUser} className="space-y-4">
                 <select
                   value={selectedUser}
                   onChange={(e) => setSelectedUser(e.target.value)}
-                  className="w-full border px-3 py-2 rounded mb-4"
+                  className="w-full bg-black border border-gray-700 text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-pink-500 transition-all"
                   required
                 >
                   <option value="">Select user</option>
@@ -197,23 +218,38 @@ const ProjectDetails = () => {
                     </option>
                   ))}
                 </select>
-                <div className="flex gap-2">
+
+                <div className="flex justify-between">
                   <button
                     type="submit"
-                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                    className="flex-1 mr-2 bg-teal-800 hover:bg-green-700 text-white font-semibold py-2 rounded-lg transition duration-200 shadow-md shadow-pink-700/40"
                   >
                     Add
                   </button>
                   <button
                     type="button"
-                    className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-600"
+                    className="flex-1 ml-2 bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 rounded-lg transition duration-200"
                     onClick={() => setShowModal(false)}
                   >
                     Cancel
                   </button>
                 </div>
-                {addError && <div className="text-red-600 mt-2">{addError}</div>}
+
+                {addError && (
+                  <div className="text-teal-500 text-sm">{addError}</div>
+                )}
+                {addSuccess && (
+                  <div className="text-green-400 text-sm">{addSuccess}</div>
+                )}
               </form>
+
+              {/* Optional: Close X Button */}
+              <button
+                className="absolute top-3 right-3 text-gray-400 hover:text-pink-500 text-lg font-bold"
+                onClick={() => setShowModal(false)}
+              >
+                ✕
+              </button>
             </div>
           </div>
         )}
