@@ -115,7 +115,7 @@ const Dashboard = () => {
           </div>
           <div className="mb-6">
             <h3 className={subHeading}>Employees</h3>
-            <ul className="list-disc ml-6 space-y-1">
+            <ul className="list-disc ml-10 space-y-1">
               {dashboard.employees.map((emp) => (
                 <li key={emp._id}>
                   <span className="text-white font-medium">{emp.name}</span>{" "}
@@ -191,23 +191,27 @@ const Dashboard = () => {
               {error && <div className="text-red-400 mt-2">{error}</div>}
             </form>
           )}
-          <h3 className={subHeading}>Your Projects</h3>
-          <ul className="space-y-2">
+
+          {/* Manager view of projects (same as member view) */}
+          <div className="grid gap-4">
             {dashboard.projects.map((p) => (
-              <li key={p._id} className="border-b border-gray-600 py-2">
-                <Link
-                  to={`/project/${p._id}`}
-                  className="text-sky-400 hover:underline font-semibold"
-                >
-                  {p.name}
-                </Link>{" "}
-                - <span className="text-gray-300">{p.description}</span>{" "}
-                <span className="text-sm text-gray-500">
-                  (Deadline: {new Date(p.deadLine).toLocaleDateString()})
-                </span>
-              </li>
+              <Link
+                key={p._id}
+                to={`/project/${p._id}`}
+                className="block rounded-xl bg-gradient-to-r from-gray-800 to-gray-700 hover:from-gray-700 hover:to-gray-600 p-5 shadow-md transition-all hover:shadow-xl border border-gray-600"
+              >
+                <div className="flex justify-between items-start">
+                  <h3 className="text-2xl font-bold text-white">{p.name}</h3>
+                  <span className="text-sm text-gray-400">
+                    Deadline: {new Date(p.deadLine).toLocaleDateString()}
+                  </span>
+                </div>
+                <p className="line-clamp-2 text-sm text-gray-400 mt-2 italic">
+                  {p.description}
+                </p>
+              </Link>
             ))}
-          </ul>
+          </div>
         </div>
       )}
 
@@ -250,7 +254,7 @@ const Dashboard = () => {
                   {t.description}
                   <br />
                   <span className="text-sm text-gray-500">
-                    Project: {t.project?.name} | Status: {t.status} | Updated:{" "}
+                    Project: {t.project?.name} | Status: {t.status} | Updated: {" "}
                     {new Date(t.updatedAt).toLocaleDateString()}
                   </span>
                 </li>
