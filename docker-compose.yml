@@ -1,0 +1,66 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  server:
+    build: ./server
+    container_name: server
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/taskflow
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    depends_on:
+      - mongo
+
+  client:
+    build: ./client
+    container_name: client
+    restart: always
+    ports:
+      - "5173:80"
+    environment:
+      - VITE_API_URL=http://localhost:8000/api
+
+  whisper_server:
+    build: ./Whisper_Server
+    container_name: whisper_server
+    restart: always
+    ports:
+      - "6500:6500"
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  ranking_server:
+    build: ./ranking_server
+    container_name: ranking_server
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/taskflow
+    depends_on:
+      - mongo
+
+  dynamical:
+    build: ./dynamical
+    container_name: dynamical
+    restart: always
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=production
+
+volumes:
+  mongo_data:
