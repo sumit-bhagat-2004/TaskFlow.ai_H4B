@@ -13,6 +13,7 @@
     "@civic/auth": "^0.8.0",
     "@tailwindcss/vite": "^4.1.10",
     "axios": "^1.10.0",
+    "daisyui": "^5.0.43",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.2",
