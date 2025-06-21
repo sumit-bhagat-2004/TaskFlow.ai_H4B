@@ -12,7 +12,6 @@ export const check = async (req, res) => {
     const user = await User.findOne({ email });
     const company = await Company.findOne({ email });
 
-    // If neither exists, go to onboarding
     if (!user && !company) {
       return res.status(404).json({
         message: "User or Company not found",
@@ -20,17 +19,14 @@ export const check = async (req, res) => {
       });
     }
 
-    // If user exists and is not onboarded
     if (user && user.isOnboarded === false) {
       return res.status(200).json({ redirect: "/onboarding" });
     }
 
-    // If company exists and is not onboarded
     if (company && company.isOnboarded === false) {
       return res.status(200).json({ redirect: "/onboarding" });
     }
 
-    // If either is onboarded
     return res.status(200).json({ redirect: "/dashboard" });
   } catch (error) {
     console.error("Error in check:", error);

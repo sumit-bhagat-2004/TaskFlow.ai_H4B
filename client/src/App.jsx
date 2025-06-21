@@ -7,6 +7,7 @@ import {
   Route,
   useNavigate,
 } from "react-router-dom";
+import Navbar from "./components/Navbar";
 
 // Dummy pages for demonstration
 import Dashboard from "./pages/Dashboard";
@@ -47,13 +48,12 @@ const AuthHandler = () => {
 
 const App = () => (
   <CivicAuthProvider clientId={import.meta.env.VITE_CIVIC_AUTH_CLIENT_ID}>
-    <Router>
-      <Routes>
-        <Route path="/" element={<AuthHandler />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/onboarding" element={<Onboarding />} />
-      </Routes>
-    </Router>
+    <Navbar />
+    <Routes>
+      <Route path="/" element={<AuthHandler />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/onboarding" element={<Onboarding />} />
+    </Routes>
   </CivicAuthProvider>
 );
 
