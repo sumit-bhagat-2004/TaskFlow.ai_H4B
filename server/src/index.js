@@ -5,6 +5,7 @@ import { connectDB } from "../db/db.js";
 import userRoutes from "../routes/user.js";
 import companyRoutes from "../routes/company.js";
 import projectRoutes from "../routes/projects.js";
+import taskRoutes from "../routes/task.js";
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/user", userRoutes);
 app.use("/api/company", companyRoutes);
 app.use("/api/projects", projectRoutes);
+app.use("/api/tasks", taskRoutes);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
