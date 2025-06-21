@@ -12,6 +12,7 @@ export const check = async (req, res) => {
     const user = await User.findOne({ email });
     const company = await Company.findOne({ email });
 
+    // If neither exists, go to onboarding
     if (!user && !company) {
       return res.status(404).json({
         message: "User or Company not found",
@@ -19,14 +20,17 @@ export const check = async (req, res) => {
       });
     }
 
+    // If user exists and is not onboarded
     if (user && user.isOnboarded === false) {
       return res.status(200).json({ redirect: "/onboarding" });
     }
 
+    // If company exists and is not onboarded
     if (company && company.isOnboarded === false) {
       return res.status(200).json({ redirect: "/onboarding" });
     }
 
+    // If either is onboarded
     return res.status(200).json({ redirect: "/dashboard" });
   } catch (error) {
     console.error("Error in check:", error);
@@ -89,6 +93,20 @@ export const onboardUser = async (req, res) => {
       .json({ message: "User onboarded successfully", user: newUser });
   } catch (error) {
     console.error("Error in onboardUser:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getUsersByCompanyId = async (req, res) => {
+  try {
+    const { companyId } = req.body;
+    if (!companyId) {
+      return res.status(400).json({ message: "companyId is required" });
+    }
+    const users = await User.find({ companyId });
+    return res.status(200).json({ users });
+  } catch (error) {
+    console.error("Error in getUsersByCompanyId:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
