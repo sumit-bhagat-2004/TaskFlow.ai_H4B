@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema(
     numTasks: {
       type: Number,
       default: 0,
+      max: 3,
     },
     isOnboarded: {
       type: Boolean,
