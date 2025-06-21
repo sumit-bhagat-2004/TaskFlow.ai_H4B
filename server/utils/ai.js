@@ -1,63 +1,93 @@
-import { createAgent, gemini } from "@inngest/agent-kit";
+// File: ../utils/ai.js
 
-export const analyzeTask = async (task) => {
-  const agent = createAgent({
-    model: gemini({
-      model: "gemini-1.5-flash",
-      temperature: 0.2,
-      apiKey: process.env.GEMINI_API_KEY,
-    }),
-    name: "task-analyzer",
-    system: `You are an expert AI assistant that processes technical support tasks. 
+import { GoogleGenAI } from "@google/genai";
 
-Your job is to:
-1. Summarize the task.
-2. Estimate its priority.
-3. Provide helpful notes and resource links for human moderators.
-4. List relevant technical skills required.
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-IMPORTANT:
-- Respond with *only* valid raw JSON.
-- Do NOT include markdown, code fences, comments, or any extra formatting.
-- The format must be a raw JSON object.
+/**
+ * Analyzes a task based on its title and description using the Gemini AI model.
+ * It returns a structured JSON object containing task summary, priority,
+ * required technical skills, and technical notes.
+ *
+ * @param {string} title - The title of the task.
+ * @param {string} description - The detailed description of the task.
+ * @returns {Promise<object | null>} A promise that resolves to a parsed JSON object
+ * with task analysis, or null if an error occurs.
+ */
+export async function analyzeAndAllocateTask(title, description) {
+  const prompt = `
+    You are an AI assistant that helps analyze and allocate tasks based on their title and description.
+    
+    Given the task title and description, provide a summary, priority level, required skills, and any technical notes.
+    
+    Task Title: ${title}
+    Task Description: ${description}
+    
+    Provide the response in JSON format with the following fields:
+    - summary: A brief summary of the task
+    - priority: The priority level (low, medium, high)
+    - technical_skills: An array of required technical skills (e.g., ["JavaScript", "Node.js", "MongoDB"])
+    - notes: Any additional technical notes or implementation hints (e.g., "Consider using Mongoose transactions for atomicity.")
+    
+    I repeat, please provide the response in JSON format.
+    `;
 
-Repeat: Do not wrap your output in markdown or code fences.`,
-  });
-
-  const res =
-    await supportAgent.run(`You are a technical support agent. Only return a strict JSON object with no extra text, headers, or markdown.
-        
-Analyze the following support ticket and provide a JSON object with:
-
-- summary: A short 1-2 sentence summary of the issue.
-- priority: One of "low", "medium", or "high".
-- helpfulNotes: A detailed technical explanation that a moderator can use to solve this issue. Include useful external links or resources if possible.
-- relatedSkills: An array of relevant skills required to solve the issue (e.g., ["React", "MongoDB"]).
-
-Respond ONLY in this JSON format and do not include any other text or markdown in the answer:
-
-{
-"summary": "Short summary of the ticket",
-"priority": "high",
-"helpfulNotes": "Here are useful tips...",
-"relatedSkills": ["React", "Node.js"]
-}
-
----
-
-Ticket information:
-
-- Title: ${task.title}
-- Description: ${task.description}`);
-
-  const raw = res.output[0].content;
+  console.log("--- Starting AI Analysis ---");
+  console.log("Prompt being sent:", prompt);
+  console.log(
+    "API Key Status:",
+    process.env.GEMINI_API_KEY ? "Loaded" : "NOT LOADED"
+  );
 
   try {
-    const match = raw.match(/```json\s*([\s\S]*?)\s*```/i);
-    const jsonString = match ? match[1] : raw.trim();
-    return JSON.parse(jsonString);
+    const response = await ai.models.generateContent({
+      model: "gemini-1.5-flash",
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseMimeType: "application/json",
+      },
+    });
+
+    console.log("AI Response received (raw):", response);
+    let jsonResponseText = response.text; // Use 'let' for reassignment
+    console.log("AI Response received (text property, raw):", jsonResponseText);
+
+    // --- NEW, MORE ROBUST LOGIC TO EXTRACT JSON BODY ---
+    const startIndex = jsonResponseText.indexOf("{");
+    const endIndex = jsonResponseText.lastIndexOf("}");
+
+    if (startIndex === -1 || endIndex === -1 || endIndex < startIndex) {
+      console.error(
+        "ERROR: Could not find valid JSON start/end characters in AI response."
+      );
+      // If we can't find valid JSON boundaries, it's a parsing failure.
+      return null;
+    }
+
+    // Extract the substring that contains only the JSON object
+    jsonResponseText = jsonResponseText
+      .substring(startIndex, endIndex + 1)
+      .trim();
+    // ---------------------------------------------------
+
+    console.log(
+      "AI Response received (text property, cleaned):",
+      jsonResponseText
+    );
+
+    const parsedResponse = JSON.parse(jsonResponseText);
+    console.log("AI Response parsed successfully:", parsedResponse);
+
+    return parsedResponse;
   } catch (error) {
-    console.log("Failed to parse json from AI" + error.message);
+    console.error("ERROR during AI analysis:", error);
+    // Log more specific details if available from the error object
+    if (error.response && error.response.status) {
+      console.error("HTTP Status Code:", error.response.status);
+      console.error("HTTP Response Data:", error.response.data);
+    }
     return null;
+  } finally {
+    console.log("--- Finished AI Analysis ---");
   }
-};
+}
