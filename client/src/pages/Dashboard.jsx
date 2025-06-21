@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -56,13 +56,12 @@ const Dashboard = () => {
     e.preventDefault();
     setError("");
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/user/projects/create`, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/projects/create`, {
         name: form.name,
         description: form.description,
         deadLine: form.deadLine,
         companyId: dashboard.user?.companyId,
-        Admin: dashboard.user?._id,
-        members: [dashboard.user?._id],
+        adminId: dashboard.user?._id,
       });
       setShowProjectForm(false);
       setForm({ name: "", description: "", deadLine: "" });
@@ -188,7 +187,13 @@ const Dashboard = () => {
         <ul>
           {dashboard.projects.map((p) => (
             <li key={p._id} className="border-b py-2">
-              <strong>{p.name}</strong> - {p.description} (Deadline:{" "}
+              <Link
+                to={`/project/${p._id}`}
+                className="text-blue-600 hover:underline font-semibold"
+              >
+                {p.name}
+              </Link>{" "}
+              - {p.description} (Deadline:{" "}
               {new Date(p.deadLine).toLocaleDateString()})
             </li>
           ))}
@@ -209,7 +214,13 @@ const Dashboard = () => {
         <ul>
           {dashboard.projects.map((p) => (
             <li key={p._id} className="border-b py-2">
-              <strong>{p.name}</strong> - {p.description} (Deadline:{" "}
+              <Link
+                to={`/project/${p._id}`}
+                className="text-blue-600 hover:underline font-semibold"
+              >
+                {p.name}
+              </Link>{" "}
+              - {p.description} (Deadline:{" "}
               {new Date(p.deadLine).toLocaleDateString()})
             </li>
           ))}

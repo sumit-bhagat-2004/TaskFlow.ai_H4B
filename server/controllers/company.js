@@ -78,7 +78,7 @@ export const getDashBoardData = async (req, res) => {
     if (user) {
       if (user.position && user.position.toLowerCase() === "project manager") {
         // Project manager: get projects where admin is this user
-        const projects = await Project.find({ Admin: user._id });
+        const projects = await Project.find({ admin: user._id });
         return res.status(200).json({
           type: "manager",
           user,

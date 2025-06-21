@@ -12,6 +12,7 @@ import Navbar from "./components/Navbar";
 // Dummy pages for demonstration
 import Dashboard from "./pages/Dashboard";
 import Onboarding from "./pages/Onboarding";
+import ProjectDetails from "./pages/ProjectDetails";
 
 const AuthHandler = () => {
   const { user } = useUser();
@@ -53,6 +54,7 @@ const App = () => (
       <Route path="/" element={<AuthHandler />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/onboarding" element={<Onboarding />} />
+      <Route path="/project/:id" element={<ProjectDetails />} />
     </Routes>
   </CivicAuthProvider>
 );
