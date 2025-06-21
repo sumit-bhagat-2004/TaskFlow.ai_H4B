@@ -14,7 +14,7 @@ const projectSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    Admin: {
+    admin: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
