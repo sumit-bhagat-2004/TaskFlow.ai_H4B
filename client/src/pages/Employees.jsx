@@ -1,9 +1,19 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
+
 const Employees = () => {
   const [rankings, setRankings] = useState([]);
   const [selectedMentor, setSelectedMentor] = useState(null);
+
+  const navigate = useNavigate();
+  
+    useEffect(() => {
+      const user = localStorage.getItem("user");
+      if (!user) {
+        navigate("/", { replace: true });
+      }
+    }, [navigate]);
 
   useEffect(() => {
     axios
@@ -22,80 +32,94 @@ const Employees = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-base-200">
-      <h1 className="text-4xl font-extrabold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-green-500">
-        🌟 Mentor Rankings
+    <div
+      className="min-h-screen px-6 py-8"
+      style={{
+        backgroundColor: "#0d0d0d",
+        color: "#e5e5e5",
+        fontFamily: "'Inter', sans-serif"
+      }}
+    >
+      <h1 className="text-4xl font-black text-center mb-10 tracking-wide">
+        🧑‍🏫 Mentor Rankings
       </h1>
 
-      {/* RANKING BOXES */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* RANKING GRID */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {rankings.map((mentor, index) => (
           <div
             key={mentor._id}
-            className="p-6 rounded-2xl shadow-xl border border-green-400 backdrop-blur-sm bg-white bg-opacity-80 hover:scale-105 transition-transform duration-300"
+            className="p-5 rounded-2xl shadow-md border border-gray-700 hover:shadow-lg transition-transform transform hover:-translate-y-1"
+            style={{
+              background: "linear-gradient(135deg, #1a1a1a, #2a2a2a)",
+            }}
           >
-            <h2 className="text-xl font-bold text-gray-900 mb-1">
-              #{index + 1} — {mentor.name}
+            <h2 className="text-lg font-semibold mb-2">
+              <span className="text-gray-400">#{index + 1}</span> {mentor.name}
             </h2>
-            <p className="text-md font-medium text-gray-700 mb-4">
-              Score: <span className="text-green-600 font-bold">{mentor.overall_score}</span>
+            <p className="text-sm text-gray-300 mb-4">
+              Avg Score: <span className="font-bold text-white">{mentor.overall_score}</span>
             </p>
             <button
-              className="btn btn-sm font-semibold px-4 py-2 text-white bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 border-none rounded-full"
               onClick={() => handleSelectMentor(mentor._id)}
+              className="w-full bg-gray-800 hover:bg-gray-700 text-white py-2 rounded-md text-sm font-medium"
             >
-              🔍 View Profile
+              View Profile →
             </button>
           </div>
         ))}
       </div>
 
-      {/* MENTOR DETAIL CARD */}
+      {/* SELECTED MENTOR PROFILE */}
       {selectedMentor && (
         <div
-          className="mt-12 p-8 rounded-3xl shadow-2xl"
+          className="mt-14 p-8 rounded-2xl border border-gray-700 shadow-inner"
           style={{
-            background:
-              "linear-gradient(90deg, hsla(59, 86%, 68%, 1) 0%, hsla(134, 36%, 53%, 1) 100%)",
+            background: "linear-gradient(135deg, #1f1f1f, #292929)",
           }}
         >
-          <div className="bg-white rounded-3xl p-6 shadow-xl">
-            <h2 className="text-3xl font-extrabold text-gray-800 mb-4">
-              {selectedMentor.name}
-            </h2>
-            <p className="mb-2 text-lg font-medium text-gray-700">
-              <strong>Skills:</strong> {selectedMentor.skills.join(", ")}
-            </p>
-            <p className="mb-4 text-lg font-medium text-gray-700">
-              <strong>Overall Score:</strong>{" "}
-              <span className="bg-gray-200 px-2 py-1 rounded text-gray-900 font-semibold">
-                {selectedMentor.overall_score}
-              </span>
-            </p>
+          <h2 className="text-3xl font-bold mb-6 text-white">
+            {selectedMentor.name}
+          </h2>
 
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="bg-gray-100 p-4 rounded-xl text-gray-800 font-medium">
-                <p>Expertise: {selectedMentor.ratings.expertise[0]}</p>
-                <p>Clarity: {selectedMentor.ratings.clarity[0]}</p>
-              </div>
-              <div className="bg-gray-100 p-4 rounded-xl text-gray-800 font-medium">
-                <p>Communication: {selectedMentor.ratings.communication[0]}</p>
-                <p>Mentorship: {selectedMentor.ratings.mentorship[0]}</p>
-              </div>
-            </div>
+          <p className="mb-4 text-gray-300">
+            <strong className="text-gray-400">Skills:</strong> {selectedMentor.skills.join(", ")}
+          </p>
+          <p className="mb-6 text-gray-300">
+            <strong className="text-gray-400">Overall Score:</strong>{" "}
+            <span className="text-white font-semibold">
+              {selectedMentor.overall_score}
+            </span>
+          </p>
 
-            <h3 className="text-2xl font-bold mb-3 text-gray-800 underline">📁 Projects Rated</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {selectedMentor.project_details.map((proj, idx) => (
-                <div
-                  key={idx}
-                  className="bg-gray-200 p-4 rounded-xl text-gray-800 border border-gray-300"
-                >
-                  <p className="font-bold">{proj.project_name}</p>
-                  <p className="text-sm text-gray-600">{proj.project_id}</p>
-                </div>
-              ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
+            <div className="bg-gray-800 p-5 rounded-xl">
+              <h3 className="text-white font-medium mb-2">Rating Parameters</h3>
+              <ul className="space-y-1 text-sm text-gray-300">
+                <li>🧠 Expertise: {selectedMentor.ratings.expertise[0]}</li>
+                <li>🎯 Clarity: {selectedMentor.ratings.clarity[0]}</li>
+              </ul>
             </div>
+            <div className="bg-gray-800 p-5 rounded-xl">
+              <h3 className="text-white font-medium mb-2">Soft Skills</h3>
+              <ul className="space-y-1 text-sm text-gray-300">
+                <li>🗣️ Communication: {selectedMentor.ratings.communication[0]}</li>
+                <li>🤝 Mentorship: {selectedMentor.ratings.mentorship[0]}</li>
+              </ul>
+            </div>
+          </div>
+
+          <h3 className="text-xl font-semibold text-white mb-3">🔗 Projects Rated</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {selectedMentor.project_details.map((proj, idx) => (
+              <div
+                key={idx}
+                className="bg-gray-700 p-4 rounded-md text-sm text-gray-200"
+              >
+                <p className="font-semibold">{proj.project_name}</p>
+                <p className="text-gray-400">{proj.project_id}</p>
+              </div>
+            ))}
           </div>
         </div>
       )}

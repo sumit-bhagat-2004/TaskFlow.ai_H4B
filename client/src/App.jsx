@@ -8,6 +8,8 @@ import {
   useNavigate,
 } from "react-router-dom";
 import Navbar from "./components/Navbar";
+import { Target, ArrowRight } from "lucide-react"
+
 
 // Dummy pages for demonstration
 import Dashboard from "./pages/Dashboard";
@@ -44,7 +46,7 @@ const AuthHandler = () => {
 
   return (
     <div>
-      <UserButton />
+      {/* <UserButton /> */}
     </div>
   );
 };
