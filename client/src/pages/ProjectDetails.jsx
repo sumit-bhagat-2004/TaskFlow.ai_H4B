@@ -140,20 +140,74 @@ const ProjectDetails = () => {
           : "None"}
       </div>
       {isAdmin && (
-        <div className="mt-8">
-          <button
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            onClick={() => {
-              setShowModal(true);
-              fetchEligibleUsers();
+        <div className="mt-10">
+          <h3 className="text-xl font-bold mb-2">
+            Create Task for this Project
+          </h3>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              setAddError("");
+              setAddSuccess("");
+              try {
+                const formData = new FormData(e.target);
+                const title = formData.get("title");
+                const description = formData.get("description");
+                await axios.post(
+                  `${import.meta.env.VITE_API_URL}/tasks/create`,
+                  {
+                    title,
+                    description,
+                    projectId: project._id,
+                  }
+                );
+                setAddSuccess(
+                  "Task created and will be assigned automatically!"
+                );
+                e.target.reset();
+              } catch (err) {
+                setAddError(
+                  err.response?.data?.error || "Failed to create task."
+                );
+              }
             }}
+            className="space-y-3"
           >
-            Add Employee to Project
-          </button>
-          {addSuccess && (
-            <div className="text-green-600 mt-2">{addSuccess}</div>
-          )}
+            <input
+              name="title"
+              placeholder="Task Title"
+              required
+              className="w-full border px-3 py-2 rounded"
+            />
+            <textarea
+              name="description"
+              placeholder="Task Description"
+              required
+              className="w-full border px-3 py-2 rounded"
+            />
+            <button
+              type="submit"
+              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+            >
+              Create Task
+            </button>
+            {addError && <div className="text-red-600 mt-2">{addError}</div>}
+            {addSuccess && (
+              <div className="text-green-600 mt-2">{addSuccess}</div>
+            )}
+          </form>
         </div>
+      )}
+      {isAdmin && (
+        <button
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          onClick={() => {
+            setShowModal(true);
+            fetchEligibleUsers();
+          }}
+        >
+          Add Employee to Project
+        </button>
       )}
 
       {/* Modal */}

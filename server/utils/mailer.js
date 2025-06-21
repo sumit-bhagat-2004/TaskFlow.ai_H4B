@@ -45,3 +45,25 @@ export const sendTaskNotificationEmail = async (email, taskName) => {
     console.error("Error sending task notification email:", error);
   }
 };
+
+export const sendTaskCompletionEmail = async (from, email, taskName) => {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+  });
+  const mailOptions = {
+    from,
+    to: email,
+    subject: "Task Completed",
+    text: `The task "${taskName}" has been marked as completed.\n\nThank you for your hard work!\n\nBest regards,\nThe Team`,
+  };
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log("Task completion email sent successfully");
+  } catch (error) {
+    console.error("Error sending task completion email:", error);
+  }
+};
