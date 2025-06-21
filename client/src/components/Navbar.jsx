@@ -7,9 +7,8 @@ const Navbar = () => {
 
   const navLinks = [
     { name: "Dashboard", path: "/dashboard" },
-   
-    
-    { name: "Employees", path: "/employees" }
+    { name: "Employees", path: "/employees" },
+    { name: "Meetings", path: "/meetings" },
   ];
 
   return (
@@ -18,9 +17,7 @@ const Navbar = () => {
         <div className="flex justify-between h-16 items-center">
           {/* Logo/Brand */}
           <Link to="/" className="flex items-center gap-2">
-            
             <span className="font-extrabold text-2xl tracking-tight">
-              
             <h1 className="text-xl font-bold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
               TaskFlow.ai
             </h1>

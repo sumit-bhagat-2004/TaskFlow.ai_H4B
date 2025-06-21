@@ -193,6 +193,7 @@ const Dashboard = () => {
           )}
 
           {/* Manager view of projects (same as member view) */}
+          <h1 className={titleStyles}>Your Projects</h1>
           <div className="grid gap-4">
             {dashboard.projects.map((p) => (
               <Link

@@ -18,7 +18,6 @@ const Onboarding = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // Check onboarding status and redirect if already onboarded
   useEffect(() => {
     const checkOnboarded = async () => {
       if (!user?.email) return;
@@ -27,18 +26,14 @@ const Onboarding = () => {
           `${import.meta.env.VITE_API_URL}/user/check`,
           { email: user.email }
         );
-        // If user is already onboarded, redirect to dashboard
         if (res.data.redirect === "/dashboard") {
           navigate("/dashboard");
         }
-      } catch (err) {
-        // Do nothing, stay on onboarding if not found
-      }
+      } catch {}
     };
     checkOnboarded();
   }, [user, navigate]);
 
-  // Prefill name, email, and id when user is available
   useEffect(() => {
     if (user) {
       setForm((prev) => ({
@@ -48,7 +43,6 @@ const Onboarding = () => {
         companyId: type === "company" ? user.id || "" : "",
       }));
     }
-    // eslint-disable-next-line
   }, [user, type]);
 
   const handleChange = (e) => {
@@ -104,143 +98,123 @@ const Onboarding = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-16 p-8 bg-white rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold mb-6 text-center">Onboarding</h2>
-      <div className="flex justify-center mb-6">
-        <label className="mr-6 flex items-center">
-          <input
-            type="radio"
-            value="user"
-            checked={type === "user"}
-            onChange={handleTypeChange}
-            className="mr-2"
-          />
-          <span>User</span>
-        </label>
-        <label className="flex items-center">
-          <input
-            type="radio"
-            value="company"
-            checked={type === "company"}
-            onChange={handleTypeChange}
-            className="mr-2"
-          />
-          <span>Company</span>
-        </label>
-      </div>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Name*</label>
-          <input
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            required
-            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            disabled
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Email*</label>
-          <input
-            name="email"
-            type="email"
-            value={form.email}
-            onChange={handleChange}
-            required
-            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            disabled
-          />
-        </div>
-        {type === "user" && (
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Company ID*
-            </label>
+    <div className="min-h-screen bg-gradient-to-tr from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center px-4 py-12 text-white font-sans">
+      <div className="w-full max-w-md bg-[#1e1e2f] rounded-3xl p-8 shadow-2xl border border-purple-700">
+        <h2 className="text-3xl font-extrabold text-center mb-6 tracking-wide">
+          Welcome to the Crew 🚀
+        </h2>
+
+        <div className="flex justify-center gap-6 mb-6">
+          <label className="flex items-center gap-2">
             <input
-              name="companyId"
-              value={form.companyId}
+              type="radio"
+              value="user"
+              checked={type === "user"}
+              onChange={handleTypeChange}
+              className="accent-purple-500"
+            />
+            <span>Employee</span>
+          </label>
+          <label className="flex items-center gap-2">
+            <input
+              type="radio"
+              value="company"
+              checked={type === "company"}
+              onChange={handleTypeChange}
+              className="accent-pink-500"
+            />
+            <span>Company</span>
+          </label>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <input
+              name="name"
+              value={form.name}
               onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        )}
-        {type === "company" && (
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Company ID*
-            </label>
-            <input
-              name="companyId"
-              value={user?.id || ""}
-              readOnly
               disabled
-              className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+              required
+              placeholder="Full Name"
+              className="w-full bg-transparent border border-purple-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
-        )}
-        {type === "user" && (
-          <>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Skills (comma separated)
-              </label>
+          <div>
+            <input
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              disabled
+              required
+              placeholder="Email"
+              className="w-full bg-transparent border border-purple-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+          {type === "user" && (
+            <>
+              <input
+                name="companyId"
+                value={form.companyId}
+                onChange={handleChange}
+                placeholder="Company ID*"
+                required
+                className="w-full bg-transparent border border-purple-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
               <input
                 name="skills"
                 value={form.skills}
                 onChange={handleChange}
-                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Skills (comma separated)"
+                className="w-full bg-transparent border border-purple-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Position*
-              </label>
               <input
                 name="position"
                 value={form.position}
                 onChange={handleChange}
                 required
-                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Position"
+                className="w-full bg-transparent border border-purple-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Experience (years)*
-              </label>
               <input
                 name="experience"
                 type="number"
+                min={0}
                 value={form.experience}
                 onChange={handleChange}
                 required
-                min={0}
-                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Experience (years)"
+                className="w-full bg-transparent border border-purple-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
-            </div>
-          </>
-        )}
-        {type === "company" && (
-          <div>
-            <label className="block text-sm font-medium mb-1">Logo URL*</label>
-            <input
-              name="logo"
-              value={user.picture}
-              onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        )}
-        {error && <div className="text-red-600 text-sm">{error}</div>}
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-        >
-          Onboard
-        </button>
-      </form>
+            </>
+          )}
+          {type === "company" && (
+            <>
+              <input
+                name="companyId"
+                value={user?.id || ""}
+                readOnly
+                disabled
+                className="w-full bg-gray-700 border border-gray-500 rounded-lg px-4 py-3"
+              />
+              <input
+                name="logo"
+                value={user.picture}
+                onChange={handleChange}
+                placeholder="Company Logo URL"
+                required
+                className="w-full bg-transparent border border-purple-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </>
+          )}
+          {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+          <button
+            type="submit"
+            className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 py-3 rounded-lg text-white font-bold hover:scale-105 transition-all duration-300"
+          >
+            🚀 Let’s Go
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

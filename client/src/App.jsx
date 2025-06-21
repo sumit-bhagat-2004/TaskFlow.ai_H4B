@@ -18,6 +18,7 @@ import Onboarding from "./pages/Onboarding";
 import ProjectDetails from "./pages/ProjectDetails";
 import Employees from "./pages/Employees";
 import EmployeeProfile from "./pages/EmployeeProfile";
+import Meetings from "./pages/Meetings";
 
 const AuthHandler = () => {
   const { user } = useUser();
@@ -92,7 +93,7 @@ const AuthHandler = () => {
 };
 
 const App = () => (
-  <CivicAuthProvider onSignOut={() => navigate("/")} clientId={import.meta.env.VITE_CIVIC_AUTH_CLIENT_ID}>
+  <CivicAuthProvider onSignOut={() => navigate("/dashboard")} clientId={import.meta.env.VITE_CIVIC_AUTH_CLIENT_ID}>
     <Navbar />
     <Routes>
       <Route path="/" element={<AuthHandler />} />
@@ -101,6 +102,7 @@ const App = () => (
       <Route path="/project/:id" element={<ProjectDetails />} />
       <Route path="/employees" element={<Employees />} />
       <Route path="/employee/:id/profile" element={<EmployeeProfile />} />
+      <Route path="/meetings" element={<Meetings />} />
     </Routes>
   </CivicAuthProvider>
 );
