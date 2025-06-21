@@ -1,6 +1,15 @@
+import os
+import datetime
 import whisper
-from fastapi import FastAPI, UploadFile
+from fastapi import FastAPI, UploadFile, Form, File, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from difflib import SequenceMatcher
+import httpx
+import google.generativeai as genai
+import json
 import uvicorn
+from dotenv import load_dotenv  # Import dotenv
 
 app = FastAPI()
 model = whisper.load_model("base")  # You can use "small", "medium", or "large"
