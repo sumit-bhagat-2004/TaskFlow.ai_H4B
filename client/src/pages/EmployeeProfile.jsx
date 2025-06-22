@@ -13,7 +13,7 @@ const EmployeeProfile = () => {
 
     const fetchMentor = async () => {
       try {
-        const res = await axios.get(`https://taskflow-ai-h4b-yfmj.onrender.com/professionals/${id}`);
+        const res = await axios.get(`https://taskflow-ai-h4b-ttfu.onrender.com/professionals/${id}`);
         setMentor(res.data);
       } catch (error) {
         console.error("Error fetching mentor details:", error);
