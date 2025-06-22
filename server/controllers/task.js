@@ -2,10 +2,7 @@ import { Project } from "../models/project.js";
 import { User } from "../models/user.js";
 import { Task } from "../models/task.js";
 import { analyzeAndAllocateTask } from "../utils/ai.js";
-import {
-  sendTaskNotificationEmail,
-  sendTaskCompletionEmail,
-} from "../utils/mailer.js";
+import { sendTaskNotificationEmail } from "../utils/mailer.js";
 
 export const createTask = async (req, res) => {
   try {
@@ -40,58 +37,29 @@ export const createTask = async (req, res) => {
       position: { $ne: "project manager" },
     });
 
-    const membersWithTaskCounts = await Promise.all(
-      members.map(async (user) => {
-        const taskCount = await Task.countDocuments({ assignedTo: user._id });
-        const hasMatchingSkill =
-          skills.length === 0 ||
-          (user.skills &&
-            user.skills.some((userSkill) =>
-              skills
-                .map((s) => s.toLowerCase())
-                .includes(userSkill.toLowerCase())
-            ));
-        return {
-          user,
-          taskCount,
-          hasMatchingSkill,
-        };
-      })
-    );
+    // Find the user with the most matching skills
+    let bestMatch = null;
+    let maxMatches = -1;
 
-    const eligibleUsers = membersWithTaskCounts
-      .filter((entry) => entry.taskCount < 3 && entry.hasMatchingSkill)
-      .sort((a, b) => a.taskCount - b.taskCount);
+    for (const user of members) {
+      if (!user.skills || user.skills.length === 0) continue;
+      const matches = user.skills.filter((userSkill) =>
+        skills.map((s) => s.toLowerCase()).includes(userSkill.toLowerCase())
+      ).length;
+      if (matches > maxMatches) {
+        maxMatches = matches;
+        bestMatch = user;
+      }
+    }
 
-    const assignedUserEntry = eligibleUsers.length ? eligibleUsers[0] : null;
-    const assignedToUser = assignedUserEntry ? assignedUserEntry.user : null; // Get the full user object
+    const assignedToUser = bestMatch;
     const assignedToUserId = assignedToUser ? assignedToUser._id : null;
 
     if (!assignedToUserId) {
-      // Find the user with the most matching skills
-      let bestMatch = null;
-      let maxMatches = -1;
-
-      for (const user of members) {
-        if (!user.skills || user.skills.length === 0) continue;
-        const matches = user.skills.filter((userSkill) =>
-          skills.map((s) => s.toLowerCase()).includes(userSkill.toLowerCase())
-        ).length;
-        if (matches > maxMatches) {
-          maxMatches = matches;
-          bestMatch = user;
-        }
-      }
-
-      const assignedToUser = bestMatch;
-      const assignedToUserId = assignedToUser ? assignedToUser._id : null;
-
-      if (!assignedToUserId) {
-        return res.status(400).json({
-          error:
-            "No eligible user found to assign this task (check members and skills).",
-        });
-      }
+      return res.status(400).json({
+        error:
+          "No eligible user found to assign this task (check members and skills).",
+      });
     }
 
     // Create the task
@@ -106,7 +74,7 @@ export const createTask = async (req, res) => {
       assignedTo: assignedToUserId,
     });
 
-    // --- NEW LOGIC: Send email notification ---
+    // --- Send email notification ---
     if (assignedToUser && assignedToUser.email && task.name) {
       await sendTaskNotificationEmail(assignedToUser.email, task.name);
     } else {
@@ -114,7 +82,6 @@ export const createTask = async (req, res) => {
         "Could not send task notification email: Missing assigned user details (email) or task name."
       );
     }
-    // --- END NEW LOGIC ---
 
     return res.status(201).json({
       message: "Task created and assigned successfully!",
@@ -179,18 +146,6 @@ export const markTaskAsCompleted = async (req, res) => {
       { $inc: { numTasks: -1 } },
       { new: true }
     );
-
-    // --- Send completion email to project manager ---
-    // Find the project and its admin (manager)
-    const project = await Project.findById(task.projectId).populate("admin");
-    if (project && project.admin && project.admin.email) {
-      await sendTaskCompletionEmail(
-        process.env.EMAIL_USER, // from
-        project.admin.email, // to
-        task.name || task.title || "Task"
-      );
-    }
-
     return res.status(200).json({ message: "Task marked as completed." });
   } catch (error) {
     console.error("Error marking task as completed:", error);
