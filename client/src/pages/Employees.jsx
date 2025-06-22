@@ -11,7 +11,7 @@ const Employees = () => {
     if (!user) return navigate("/", { replace: true });
 
     axios
-      .get("http://localhost:3000/ranking")
+      .get("https://taskflow-ai-h4b-yfmj.onrender.com/ranking")
       .then((res) => setRankings(res.data))
       .catch((err) => console.error("Error fetching rankings:", err));
   }, [navigate]);
