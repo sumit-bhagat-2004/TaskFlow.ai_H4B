@@ -6,11 +6,10 @@ import {
   Routes,
   Route,
   useNavigate,
-  Link
+  Link,
 } from "react-router-dom";
 import Navbar from "./components/Navbar";
-import { Target, ArrowRight } from "lucide-react"
-
+import { Target, ArrowRight } from "lucide-react";
 
 // Dummy pages for demonstration
 import Dashboard from "./pages/Dashboard";
@@ -53,8 +52,6 @@ const AuthHandler = () => {
       <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500 opacity-20 rounded-full blur-3xl animate-pulse delay-200" />
       <div className="absolute top-1/3 left-1/3 w-96 h-96 bg-pink-500 opacity-20 rounded-full blur-3xl animate-pulse delay-500" />
 
-      
-
       {/* Hero Content */}
       <main className="z-10 flex-grow flex items-center justify-center text-center px-4">
         <div className="max-w-4xl">
@@ -74,7 +71,14 @@ const AuthHandler = () => {
               <ArrowRight className="w-5 h-5" />
             </button>
           </Link>
+          <div className="mt-8 flex justify-center">
+        <p className="text-gray-300 text-xl space-y-4 mb-10">
+            AI-powered project management for next-gen teams. Automate tasks,
+            collaborate effortlessly, and get real-time productivity insights.
+          </p>
         </div>
+        </div>
+        
       </main>
 
       {/* Footer */}
@@ -82,9 +86,15 @@ const AuthHandler = () => {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
           <p>© 2024 TaskFlow.ai. All rights reserved.</p>
           <div className="flex gap-4 mt-3 md:mt-0">
-            <Link to="/privacy" className="hover:text-white">Privacy</Link>
-            <Link to="/terms" className="hover:text-white">Terms</Link>
-            <Link to="/cookies" className="hover:text-white">Cookies</Link>
+            <Link to="/privacy" className="hover:text-white">
+              Privacy
+            </Link>
+            <Link to="/terms" className="hover:text-white">
+              Terms
+            </Link>
+            <Link to="/cookies" className="hover:text-white">
+              Cookies
+            </Link>
           </div>
         </div>
       </footer>
@@ -93,7 +103,10 @@ const AuthHandler = () => {
 };
 
 const App = () => (
-  <CivicAuthProvider onSignOut={() => navigate("/dashboard")} clientId={import.meta.env.VITE_CIVIC_AUTH_CLIENT_ID}>
+  <CivicAuthProvider
+    onSignOut={() => navigate("/dashboard")}
+    clientId={import.meta.env.VITE_CIVIC_AUTH_CLIENT_ID}
+  >
     <Navbar />
     <Routes>
       <Route path="/" element={<AuthHandler />} />

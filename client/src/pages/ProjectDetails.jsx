@@ -14,12 +14,10 @@ const ProjectDetails = () => {
   const [addError, setAddError] = useState("");
   const [addSuccess, setAddSuccess] = useState("");
 
-  const [showMeetingModal, setShowMeetingModal] = useState(false);
-  const [meetingDate, setMeetingDate] = useState("");
-  const [meetingTime, setMeetingTime] = useState("");
-  const [meetingAgenda, setMeetingAgenda] = useState("");
-  const [meetingSuccess, setMeetingSuccess] = useState("");
-  const [meetingError, setMeetingError] = useState("");
+  const [taskForm, setTaskForm] = useState({ title: "", description: "" });
+  const [taskSuccess, setTaskSuccess] = useState("");
+  const [taskError, setTaskError] = useState("");
+  const [tasks, setTasks] = useState([]);
 
   useEffect(() => {
     const stored = localStorage.getItem("user");
@@ -43,10 +41,9 @@ const ProjectDetails = () => {
     const fetchProject = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/projects/${id}`
-        );
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/projects/${id}`);
         setProject(res.data);
+        fetchTasks(); // Fetch tasks for the project
       } catch {
         setProject(null);
       } finally {
@@ -55,6 +52,15 @@ const ProjectDetails = () => {
     };
     fetchProject();
   }, [id]);
+
+  const fetchTasks = async () => {
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/tasks/getTasksByProject/${id}`);
+      setTasks(res.data || []);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    }
+  };
 
   const fetchEligibleUsers = async () => {
     setAddError("");
@@ -93,92 +99,50 @@ const ProjectDetails = () => {
       setAddSuccess("User added to project!");
       setSelectedUser("");
       setShowModal(false);
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/projects/${id}`
-      );
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/projects/${id}`);
       setProject(res.data);
+      fetchTasks(); // Refresh tasks after adding a user
     } catch (err) {
-      setAddError(
-        err.response?.data?.error || "Failed to add user to project."
-      );
+      setAddError(err.response?.data?.error || "Failed to add user to project.");
     }
   };
 
-  const handleCreateMeeting = async (e) => {
+  const handleTaskCreate = async (e) => {
     e.preventDefault();
-    setMeetingError("");
-    setMeetingSuccess("");
-    if (!meetingDate || !meetingTime || !meetingAgenda)
-      return setMeetingError("Please fill in all fields.");
-
+    setTaskError("");
+    setTaskSuccess("");
     try {
-      await axios.post(
-        `${import.meta.env.VITE_API_URL}/projects/create-meeting`,
-        {
-          projectId: project._id,
-          date: meetingDate,
-          time: meetingTime,
-          agenda: meetingAgenda,
-          adminId: userId,
-        }
-      );
-      setMeetingSuccess("Meeting created successfully!");
-      setMeetingDate("");
-      setMeetingTime("");
-      setMeetingAgenda("");
-      setShowMeetingModal(false);
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/tasks/create`, {
+        projectId: project._id,
+        title: taskForm.title,
+        description: taskForm.description,
+      });
+      setTaskSuccess("Task created successfully!");
+      setTaskForm({ title: "", description: "" });
+      setTasks([...tasks, res.data.task]);
     } catch (err) {
-      setMeetingError(
-        err.response?.data?.error || "Failed to create meeting."
-      );
+      setTaskError(err.response?.data?.error || "Failed to create task.");
     }
   };
 
-  const handleSendMeetingInvites = async (e) => {
-    e.preventDefault();
-    setMeetingSuccess("");
-    setMeetingError("");
-    if (!meetingDate || !meetingTime || !meetingAgenda) {
-      setMeetingError("All fields are required.");
-      return;
-    }
-    // Send to all members except admin
-    const recipients = project.members.filter(
-      (m) => (typeof m === "object" ? m._id : m) !== userId
-    );
+  const handleMarkAsCompleted = async (taskId) => {
     try {
-      await Promise.all(
-        recipients.map((member) =>
-          axios.post(`${import.meta.env.VITE_API_URL}/send-meeting-invitation`, {
-            email: typeof member === "object" ? member.email : member,
-            meetingDetails: {
-              subject: "Project Meeting Invitation",
-              date: meetingDate,
-              time: meetingTime,
-              agenda: meetingAgenda,
-            },
-          })
+      await axios.put(`${import.meta.env.VITE_API_URL}/tasks/markAsCompleted/${taskId}`);
+      setTasks(
+        tasks.map((task) =>
+          task._id === taskId ? { ...task, status: "completed" } : task
         )
       );
-      setMeetingSuccess("Meeting invitations sent!");
-      setShowMeetingModal(false);
-      setMeetingDate("");
-      setMeetingTime("");
-      setMeetingAgenda("");
-    } catch (err) {
-      setMeetingError("Failed to send meeting invitations.");
+    } catch (error) {
+      console.error("Error marking task as completed:", error);
     }
   };
 
-  if (loading)
-    return <div className="text-center p-8 text-white">Loading...</div>;
+  if (loading) return <div className="text-center p-8 text-white">Loading...</div>;
   if (!project)
-    return (
-      <div className="text-center p-8 text-red-600">Project not found.</div>
-    );
+    return <div className="text-center p-8 text-red-600">Project not found.</div>;
 
-  const adminId =
-    typeof project.admin === "object" ? project.admin._id : project.admin;
+  const adminId = typeof project.admin === "object" ? project.admin._id : project.admin;
   const isAdmin = userId && adminId && String(userId) === String(adminId);
 
   return (
@@ -197,9 +161,7 @@ const ProjectDetails = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Left: Project Info */}
           <div className="space-y-6">
-            <p className="text-white-300 text-base space-y-5">
-              {project.description}
-            </p>
+            <p className="text-white-300 text-base space-y-5">{project.description}</p>
             <div>
               <span className="font-semibold text-gray-200">📅 Deadline:</span>{" "}
               <span className="text-gray-400">
@@ -207,9 +169,7 @@ const ProjectDetails = () => {
               </span>
             </div>
             <div>
-              <span className="font-semibold text-gray-200">
-                🏢 Company ID:
-              </span>{" "}
+              <span className="font-semibold text-gray-200">🏢 Company ID:</span>{" "}
               <span className="text-gray-400">{project.companyId}</span>
             </div>
             <div>
@@ -222,9 +182,7 @@ const ProjectDetails = () => {
 
           {/* Right: Members */}
           <div className="ml-8">
-            <h3 className="text-xl font-semibold text-gray-200 mb-3">
-              👥 Members
-            </h3>
+            <h3 className="text-xl font-semibold text-gray-200 mb-3">👥 Members</h3>
             {project.members && project.members.length > 0 ? (
               <ul className="space-y-4">
                 {project.members.map((m, index) => (
@@ -252,6 +210,64 @@ const ProjectDetails = () => {
           </div>
         </div>
 
+        {/* Task Creator */}
+        <div className="mt-10 border-t border-gray-600 pt-6">
+          <h3 className="text-2xl font-bold text-pink-500 mb-4">📋 Create Task</h3>
+          <form onSubmit={handleTaskCreate} className="space-y-4">
+            <input
+              type="text"
+              value={taskForm.title}
+              onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
+              placeholder="Task Title"
+              className="w-full bg-black border border-gray-700 text-white px-4 py-2 rounded-lg"
+              required
+            />
+            <textarea
+              value={taskForm.description}
+              onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })}
+              placeholder="Task Description"
+              className="w-full bg-black border border-gray-700 text-white px-4 py-2 rounded-lg"
+              required
+            ></textarea>
+            <button
+              type="submit"
+              className="w-full bg-pink-600 hover:bg-pink-700 text-white py-2 rounded-lg"
+            >
+              Create Task
+            </button>
+            {taskError && <p className="text-red-500 text-sm">{taskError}</p>}
+            {taskSuccess && <p className="text-green-500 text-sm">{taskSuccess}</p>}
+          </form>
+        </div>
+
+        {/* Task Display */}
+        <div className="mt-10">
+          <h3 className="text-xl font-bold text-white mb-4">🗂 Assigned Tasks</h3>
+          {tasks.length > 0 ? (
+            <ul className="space-y-4">
+              {tasks.map((task, index) => (
+                <li key={index} className="bg-gray-800 border border-gray-600 rounded-lg p-4">
+                  <h4 className="text-lg font-semibold text-pink-400">{task.title}</h4>
+                  <p className="text-gray-300">{task.description}</p>
+                  {task.assignedTo && (
+                    <p className="text-sm text-gray-400 mt-2">Assigned to: {task.assignedTo.name || task.assignedTo.email || task.assignedTo}</p>
+                  )}
+                  {task.status !== "completed" && (
+                    <button
+                      onClick={() => handleMarkAsCompleted(task._id)}
+                      className="mt-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
+                    >
+                      Mark as Completed
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-400 italic">No tasks created yet.</p>
+          )}
+        </div>
+
         {isAdmin && (
           <div className="mt-8">
             <button
@@ -263,39 +279,20 @@ const ProjectDetails = () => {
             >
               Add Employee to Project
             </button>
-            {addSuccess && (
-              <div className="text-green-600 mt-2">{addSuccess}</div>
-            )}
-          </div>
-        )}
-
-        {isAdmin && (
-          <div className="mt-8">
-            <button
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-              onClick={() => setShowMeetingModal(true)}
-            >
-              Create Meeting
-            </button>
-            {meetingSuccess && (
-              <div className="text-green-600 mt-2">{meetingSuccess}</div>
-            )}
+            {addSuccess && <div className="text-green-600 mt-2">{addSuccess}</div>}
           </div>
         )}
 
         {/* Modal */}
         {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-md flex items-center justify-center z-50">
-            <div className="bg-[#0f0f0f] border border-pink-500 rounded-2xl shadow-xl p-8 w-full max-w-md relative animate-fade-in">
-              <h3 className="text-2xl font-bold text-pink-500 mb-4 text-center">
-                Add Employee
-              </h3>
-
-              <form onSubmit={handleAddUser} className="space-y-4">
+          <div className="fixed inset-0 bg-black border-pink-700 bg-opacity-40 flex items-center justify-center z-50">
+            <div className="bg-zinc rounded-lg p-8 shadow-lg border-pink-700 w-full max-w-md">
+              <h3 className="text-xl font-bold mb-4 border-pink-700">Add Employee</h3>
+              <form onSubmit={handleAddUser}>
                 <select
                   value={selectedUser}
                   onChange={(e) => setSelectedUser(e.target.value)}
-                  className="w-full bg-black border border-gray-700 text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-pink-500 transition-all"
+                  className="w-full border px-3 py-2 rounded mb-4 bg-zinc-600"
                   required
                 >
                   <option value="">Select user</option>
@@ -305,99 +302,23 @@ const ProjectDetails = () => {
                     </option>
                   ))}
                 </select>
-
-                <div className="flex justify-between">
+                <div className="flex gap-4">
                   <button
                     type="submit"
-                    className="flex-1 mr-2 bg-teal-800 hover:bg-green-700 text-white font-semibold py-2 rounded-lg transition duration-200 shadow-md shadow-pink-700/40"
+                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
                   >
                     Add
                   </button>
                   <button
                     type="button"
-                    className="flex-1 ml-2 bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 rounded-lg transition duration-200"
+                    className="bg-zinc-400 text-white px-4 py-2 rounded hover:bg-gray-600"
                     onClick={() => setShowModal(false)}
                   >
                     Cancel
                   </button>
                 </div>
-
-                {addError && (
-                  <div className="text-teal-500 text-sm">{addError}</div>
-                )}
-                {addSuccess && (
-                  <div className="text-green-400 text-sm">{addSuccess}</div>
-                )}
+                {addError && <div className="text-red-600 mt-2">{addError}</div>}
               </form>
-
-              {/* Optional: Close X Button */}
-              <button
-                className="absolute top-3 right-3 text-gray-400 hover:text-pink-500 text-lg font-bold"
-                onClick={() => setShowModal(false)}
-              >
-                ✕
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Meeting Modal */}
-        {showMeetingModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-md flex items-center justify-center z-50">
-            <div className="bg-[#0f0f0f] border border-blue-500 rounded-2xl shadow-xl p-8 w-full max-w-md relative animate-fade-in">
-              <h3 className="text-2xl font-bold text-blue-500 mb-4 text-center">
-                Create Meeting
-              </h3>
-              <form onSubmit={handleSendMeetingInvites} className="space-y-4">
-                <input
-                  type="date"
-                  value={meetingDate}
-                  onChange={(e) => setMeetingDate(e.target.value)}
-                  className="w-full bg-black border border-gray-700 text-white px-4 py-3 rounded-lg"
-                  required
-                />
-                <input
-                  type="time"
-                  value={meetingTime}
-                  onChange={(e) => setMeetingTime(e.target.value)}
-                  className="w-full bg-black border border-gray-700 text-white px-4 py-3 rounded-lg"
-                  required
-                />
-                <textarea
-                  placeholder="Agenda"
-                  value={meetingAgenda}
-                  onChange={(e) => setMeetingAgenda(e.target.value)}
-                  className="w-full bg-black border border-gray-700 text-white px-4 py-3 rounded-lg"
-                  required
-                />
-                <div className="flex justify-between">
-                  <button
-                    type="submit"
-                    className="flex-1 mr-2 bg-blue-800 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition duration-200"
-                  >
-                    Send Invites
-                  </button>
-                  <button
-                    type="button"
-                    className="flex-1 ml-2 bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 rounded-lg transition duration-200"
-                    onClick={() => setShowMeetingModal(false)}
-                  >
-                    Cancel
-                  </button>
-                </div>
-                {meetingError && (
-                  <div className="text-red-400 text-sm">{meetingError}</div>
-                )}
-                {meetingSuccess && (
-                  <div className="text-green-400 text-sm">{meetingSuccess}</div>
-                )}
-              </form>
-              <button
-                className="absolute top-3 right-3 text-gray-400 hover:text-blue-500 text-lg font-bold"
-                onClick={() => setShowMeetingModal(false)}
-              >
-                ✕
-              </button>
             </div>
           </div>
         )}
