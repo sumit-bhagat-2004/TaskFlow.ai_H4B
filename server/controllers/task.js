@@ -124,10 +124,9 @@ export const getTasksByProject = async (req, res) => {
 export const markTaskAsCompleted = async (req, res) => {
   try {
     const { taskId } = req.params;
-    const { userId } = req.body; // Assuming userId is passed in the request body
-    if (!taskId || !userId) {
+    if (!taskId) {
       return res.status(400).json({
-        error: "Task ID and user ID are required to mark a task as completed.",
+        error: "Task ID is required to mark a task as completed.",
       });
     }
     const task = await Task.findById(taskId);
@@ -140,12 +139,6 @@ export const markTaskAsCompleted = async (req, res) => {
     // Update the task status to completed
     task.status = "completed";
     await task.save();
-    // Decrement numTasks for the user who completed the task
-    await User.findByIdAndUpdate(
-      userId,
-      { $inc: { numTasks: -1 } },
-      { new: true }
-    );
     return res.status(200).json({ message: "Task marked as completed." });
   } catch (error) {
     console.error("Error marking task as completed:", error);
