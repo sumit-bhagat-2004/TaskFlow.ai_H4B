@@ -2,7 +2,10 @@ import { Project } from "../models/project.js";
 import { User } from "../models/user.js";
 import { Task } from "../models/task.js";
 import { analyzeAndAllocateTask } from "../utils/ai.js";
-import { sendTaskNotificationEmail, sendTaskCompletionEmail } from "../utils/mailer.js";
+import {
+  sendTaskNotificationEmail,
+  sendTaskCompletionEmail,
+} from "../utils/mailer.js";
 
 export const createTask = async (req, res) => {
   try {
@@ -65,10 +68,30 @@ export const createTask = async (req, res) => {
     const assignedToUserId = assignedToUser ? assignedToUser._id : null;
 
     if (!assignedToUserId) {
-      return res.status(400).json({
-        error:
-          "No eligible user found to assign this task (check members, skills, and task limits).",
-      });
+      // Find the user with the most matching skills
+      let bestMatch = null;
+      let maxMatches = -1;
+
+      for (const user of members) {
+        if (!user.skills || user.skills.length === 0) continue;
+        const matches = user.skills.filter((userSkill) =>
+          skills.map((s) => s.toLowerCase()).includes(userSkill.toLowerCase())
+        ).length;
+        if (matches > maxMatches) {
+          maxMatches = matches;
+          bestMatch = user;
+        }
+      }
+
+      const assignedToUser = bestMatch;
+      const assignedToUserId = assignedToUser ? assignedToUser._id : null;
+
+      if (!assignedToUserId) {
+        return res.status(400).json({
+          error:
+            "No eligible user found to assign this task (check members and skills).",
+        });
+      }
     }
 
     // Create the task
@@ -82,14 +105,6 @@ export const createTask = async (req, res) => {
       skills,
       assignedTo: assignedToUserId,
     });
-
-    // Increment numTasks for the assigned user
-    await User.findByIdAndUpdate(
-      assignedToUserId,
-      { $inc: { numTasks: 1 } },
-      { new: true }
-    );
-    console.log(`User ${assignedToUserId} numTasks incremented.`);
 
     // --- NEW LOGIC: Send email notification ---
     if (assignedToUser && assignedToUser.email && task.name) {
@@ -171,7 +186,7 @@ export const markTaskAsCompleted = async (req, res) => {
     if (project && project.admin && project.admin.email) {
       await sendTaskCompletionEmail(
         process.env.EMAIL_USER, // from
-        project.admin.email,    // to
+        project.admin.email, // to
         task.name || task.title || "Task"
       );
     }
