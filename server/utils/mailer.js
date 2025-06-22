@@ -67,3 +67,40 @@ export const sendTaskCompletionEmail = async (from, email, taskName) => {
     console.error("Error sending task completion email:", error);
   }
 };
+
+export const sendMeetingInvitationEmail = async (email, meetingDetails) => {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+  });
+
+  const { subject, date, time, location, agenda } = meetingDetails;
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: subject || "Meeting Invitation",
+    text: `You are invited to a meeting.\n
+Date: ${date}
+Time: ${time}
+Location: ${location}
+Agenda: ${agenda || "N/A"}
+
+Please confirm your attendance.
+
+Best regards,
+The Team`,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log("Meeting invitation email sent successfully");
+  } catch (error) {
+    console.error("Error sending meeting invitation email:", error);
+  }
+};
+
+
