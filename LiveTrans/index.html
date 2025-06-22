@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Voice Recorder</title>
+</head>
+<body>
+  <h1>🎙️ Test Voice Recorder with VAD</h1>
+  <button onclick="startRecording()">Start</button>
+  <button onclick="stopRecording()">Stop</button>
+
+  <script>
+    let mediaStream;
+    let mediaRecorder;
+    let audioChunks = [];
+
+    async function startRecording() {
+      // Ask permission and get microphone
+      mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+      // Create MediaRecorder to record audio
+      mediaRecorder = new MediaRecorder(mediaStream);
+
+      mediaRecorder.ondataavailable = event => {
+        if (event.data.size > 0) {
+          audioChunks.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        const formData = new FormData();
+        formData.append('file', audioBlob, 'audio.wav');  // 👈 use 'file' to match FastAPI
+
+        // Send audio to backend
+        const response = await fetch('http://localhost:6500/transcribe', {
+          method: 'POST',
+          body: formData
+        });
+
+        const result = await response.json();
+        alert("Transcript: " + result.text);
+        // Log the transcript to console
+        console.log("Transcript:", result.text);
+
+        // Reset
+        audioChunks = [];
+      };
+
+      mediaRecorder.start();
+      console.log("Recording started");
+    }
+
+    function stopRecording() {
+      mediaRecorder.stop();
+      console.log("Recording stopped");
+    }
+  </script>
+</body>
+</html>
