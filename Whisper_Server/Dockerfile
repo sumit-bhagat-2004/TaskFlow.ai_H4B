@@ -9,6 +9,15 @@ RUN apt-get update && \
     apt-get install -y ffmpeg git && \
     rm -rf /var/lib/apt/lists/*
 
+# Install dependencies before pip install
+RUN apt-get update && apt-get install -y \
+    linux-headers-$(uname -r) \
+    build-essential \
+    python3-dev \
+    libevdev-dev \
+ && rm -rf /var/lib/apt/lists/*
+
+
 # Copy requirements
 COPY requirements.txt .
 
