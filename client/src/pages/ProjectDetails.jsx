@@ -43,7 +43,7 @@ const ProjectDetails = () => {
       try {
         const res = await axios.get(`${import.meta.env.VITE_API_URL}/projects/${id}`);
         setProject(res.data);
-        setTasks(res.data.tasks || []);
+        fetchTasks(); // Fetch tasks for the project
       } catch {
         setProject(null);
       } finally {
@@ -52,6 +52,15 @@ const ProjectDetails = () => {
     };
     fetchProject();
   }, [id]);
+
+  const fetchTasks = async () => {
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/tasks/getTasksByProject/${id}`);
+      setTasks(res.data || []);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    }
+  };
 
   const fetchEligibleUsers = async () => {
     setAddError("");
@@ -92,7 +101,7 @@ const ProjectDetails = () => {
       setShowModal(false);
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/projects/${id}`);
       setProject(res.data);
-      setTasks(res.data.tasks || []);
+      fetchTasks(); // Refresh tasks after adding a user
     } catch (err) {
       setAddError(err.response?.data?.error || "Failed to add user to project.");
     }
@@ -113,6 +122,19 @@ const ProjectDetails = () => {
       setTasks([...tasks, res.data.task]);
     } catch (err) {
       setTaskError(err.response?.data?.error || "Failed to create task.");
+    }
+  };
+
+  const handleMarkAsCompleted = async (taskId) => {
+    try {
+      await axios.put(`${import.meta.env.VITE_API_URL}/tasks/markAsCompleted/${taskId}`);
+      setTasks(
+        tasks.map((task) =>
+          task._id === taskId ? { ...task, status: "completed" } : task
+        )
+      );
+    } catch (error) {
+      console.error("Error marking task as completed:", error);
     }
   };
 
@@ -230,6 +252,14 @@ const ProjectDetails = () => {
                   {task.assignedTo && (
                     <p className="text-sm text-gray-400 mt-2">Assigned to: {task.assignedTo.name || task.assignedTo.email || task.assignedTo}</p>
                   )}
+                  {task.status !== "completed" && (
+                    <button
+                      onClick={() => handleMarkAsCompleted(task._id)}
+                      className="mt-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
+                    >
+                      Mark as Completed
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
@@ -262,7 +292,7 @@ const ProjectDetails = () => {
                 <select
                   value={selectedUser}
                   onChange={(e) => setSelectedUser(e.target.value)}
-                  className="w-full border px-3 py-2 rounded mb-4"
+                  className="w-full border px-3 py-2 rounded mb-4 bg-zinc-600"
                   required
                 >
                   <option value="">Select user</option>
@@ -281,7 +311,7 @@ const ProjectDetails = () => {
                   </button>
                   <button
                     type="button"
-                    className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-600"
+                    className="bg-zinc-400 text-white px-4 py-2 rounded hover:bg-gray-600"
                     onClick={() => setShowModal(false)}
                   >
                     Cancel
